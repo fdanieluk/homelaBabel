@@ -1,0 +1,14 @@
+- name: Base server setup
+  hosts: all
+  tasks:
+    - name: Install base packages
+      ansible.builtin.dnf:
+        name:
+          - git
+          - python3
+          - podman
+          - podman-compose
+          - htop
+          - vim
+          - nano
+        state: present
