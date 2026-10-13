@@ -38,6 +38,40 @@
         immediate: true
         state: enabled
 
+    - name: Open DNS in firewalld (Pi-hole)
+      ansible.posix.firewalld:
+        service: dns
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Open Pi-hole web UI port in firewalld
+      ansible.posix.firewalld:
+        port: 8081/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Let rootless containers bind ports from 53 up (Pi-hole DNS)
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_unprivileged_port_start
+        value: "53"
+        sysctl_file: /etc/sysctl.d/99-rootless-ports.conf
+        state: present
+
+    - name: Load conntrack module at boot so its sysctl applies
+      ansible.builtin.copy:
+        content: "nf_conntrack\n"
+        dest: /etc/modules-load.d/nf_conntrack.conf
+        mode: "0644"
+
+    - name: Keep Matter UDP sessions alive through the firewall
+      ansible.posix.sysctl:
+        name: net.netfilter.nf_conntrack_udp_timeout_stream
+        value: "3600"
+        sysctl_file: /etc/sysctl.d/99-matter.conf
+        state: present
+
     - name: Enable linger so user services start at boot
       ansible.builtin.command:
         cmd: loginctl enable-linger {{ lookup('env', 'USER') }}

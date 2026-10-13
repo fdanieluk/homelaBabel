@@ -1,0 +1,20 @@
+[Unit]
+Description=Pi-hole DNS ad blocker
+
+[Container]
+ContainerName=pihole
+Image={{ pihole_image }}
+PublishPort=53:53/tcp
+PublishPort=53:53/udp
+PublishPort=8081:80/tcp
+Environment=FTLCONF_dns_listeningMode=ALL
+Volume=%h/pihole:/etc/pihole:Z
+Volume=/etc/localtime:/etc/localtime:ro
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

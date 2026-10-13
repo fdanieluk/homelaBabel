@@ -1,0 +1,18 @@
+[Unit]
+Description=Matter server (matter.js) for Home Assistant
+
+[Container]
+ContainerName=matter-server
+Image={{ matter_server_image }}
+Network=host
+UserNS=keep-id:uid=1000,gid=1000
+Volume=%h/matter-server:/data:Z
+Environment=LISTEN_ADDRESS=127.0.0.1
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target
