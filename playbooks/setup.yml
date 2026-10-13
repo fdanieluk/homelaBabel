@@ -30,3 +30,15 @@
         permanent: true
         immediate: true
         state: enabled
+
+    - name: Open Home Assistant port in firewalld
+      ansible.posix.firewalld:
+        port: 8123/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Enable linger so user services start at boot
+      ansible.builtin.command:
+        cmd: loginctl enable-linger {{ lookup('env', 'USER') }}
+        creates: /var/lib/systemd/linger/{{ lookup('env', 'USER') }}

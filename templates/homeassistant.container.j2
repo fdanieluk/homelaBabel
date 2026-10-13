@@ -1,0 +1,17 @@
+[Unit]
+Description=Home Assistant
+
+[Container]
+ContainerName=homeassistant
+Image={{ homeassistant_image }}
+Network=host
+Volume=%h/homeassistant:/config:Z
+Volume=/etc/localtime:/etc/localtime:ro
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target
