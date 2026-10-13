@@ -38,6 +38,13 @@
         immediate: true
         state: enabled
 
+    - name: Open electric-eye port in firewalld
+      ansible.posix.firewalld:
+        port: 8000/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
     - name: Open DNS in firewalld (Pi-hole)
       ansible.posix.firewalld:
         service: dns
