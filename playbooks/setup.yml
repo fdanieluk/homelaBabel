@@ -1,5 +1,8 @@
 - name: Base server setup
   hosts: all
+  vars:
+    # babel resolves via public DNS, never via its own Pi-hole
+    host_dns: "1.1.1.1,9.9.9.9"
   tasks:
     - name: Install base packages
       ansible.builtin.dnf:
@@ -78,6 +81,33 @@
         value: "3600"
         sysctl_file: /etc/sysctl.d/99-matter.conf
         state: present
+
+    - name: Find NetworkManager connection on the default interface
+      ansible.builtin.command:
+        cmd: nmcli -g GENERAL.CONNECTION device show {{ ansible_default_ipv4.interface }}
+      register: nm_conn
+      changed_when: false
+
+    - name: Read current DNS settings of that connection
+      ansible.builtin.command:
+        cmd: nmcli -g ipv4.dns,ipv4.ignore-auto-dns,ipv6.ignore-auto-dns connection show "{{ nm_conn.stdout }}"
+      register: nm_dns
+      changed_when: false
+
+    - name: Pin host DNS to public resolvers
+      ansible.builtin.command:
+        cmd: >-
+          nmcli connection modify "{{ nm_conn.stdout }}"
+          ipv4.dns "{{ host_dns }}"
+          ipv4.ignore-auto-dns yes
+          ipv6.ignore-auto-dns yes
+      when: nm_dns.stdout_lines != [host_dns, "yes", "yes"]
+      register: nm_dns_changed
+
+    - name: Re-apply connection so new DNS takes effect
+      ansible.builtin.command:
+        cmd: nmcli device reapply {{ ansible_default_ipv4.interface }}
+      when: nm_dns_changed.changed
 
     - name: Enable linger so user services start at boot
       ansible.builtin.command:
