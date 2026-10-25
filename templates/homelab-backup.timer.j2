@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly restic backup to the USB stick
+
+[Timer]
+OnCalendar=*-*-* {{ backup_time }}
+# Runs after boot if babel was off at the scheduled time
+Persistent=true
+
+[Install]
+WantedBy=timers.target

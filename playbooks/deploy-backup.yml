@@ -1,0 +1,100 @@
+- name: Deploy nightly backup
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/backup.yml
+
+  tasks:
+    - name: Install backup as user service
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
+      block:
+        - name: Check for restic password file
+          ansible.builtin.stat:
+            path: "{{ ansible_env.HOME }}/{{ backup_password_file }}"
+          register: restic_pass
+
+        - name: Require restic password file
+          ansible.builtin.assert:
+            that: restic_pass.stat.exists
+            fail_msg: "Create ~/{{ backup_password_file }} on babel first (and save it in the password manager)"
+
+        - name: Enforce restic password file mode
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/{{ backup_password_file }}"
+            state: file
+            mode: "0600"
+
+        - name: Check which backup disks are mounted
+          ansible.builtin.command:
+            cmd: mountpoint -q {{ item.mount }}
+          loop: "{{ backup_repos }}"
+          register: backup_mounted
+          changed_when: false
+          failed_when: false
+
+        - name: Require the mandatory backup disk
+          ansible.builtin.assert:
+            that: item.rc == 0
+            fail_msg: "{{ item.item.mount }} is not mounted; run setup.yml after formatting the disk"
+          loop: "{{ backup_mounted.results }}"
+          loop_control:
+            label: "{{ item.item.mount }}"
+          when: item.item.required
+
+        - name: Check for restic repositories
+          ansible.builtin.stat:
+            path: "{{ item.item.mount }}/restic/config"
+          loop: "{{ backup_mounted.results }}"
+          loop_control:
+            label: "{{ item.item.mount }}"
+          when: item.rc == 0
+          register: restic_repos
+
+        - name: Initialise missing restic repositories
+          ansible.builtin.command:
+            cmd: >-
+              restic init --repo {{ item.item.item.mount }}/restic
+              --password-file {{ ansible_env.HOME }}/{{ backup_password_file }}
+          loop: "{{ restic_repos.results }}"
+          loop_control:
+            label: "{{ item.item.item.mount }}"
+          when: item.stat is defined and not item.stat.exists
+
+        - name: Ensure script and unit directories exist
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/{{ item }}"
+            state: directory
+            mode: "0755"
+          loop:
+            - .local/bin
+            - .config/systemd/user
+
+        - name: Install backup script
+          ansible.builtin.template:
+            src: ../templates/homelab-backup.sh.j2
+            dest: "{{ ansible_env.HOME }}/.local/bin/homelab-backup"
+            mode: "0755"
+
+        - name: Install backup service and timer
+          ansible.builtin.template:
+            src: "../templates/homelab-backup.{{ item }}.j2"
+            dest: "{{ ansible_env.HOME }}/.config/systemd/user/homelab-backup.{{ item }}"
+            mode: "0644"
+          loop:
+            - service
+            - timer
+          register: backup_units
+
+        - name: Reload systemd user daemon
+          ansible.builtin.systemd:
+            daemon_reload: true
+            scope: user
+          when: backup_units.changed
+
+        - name: Enable backup timer
+          ansible.builtin.systemd:
+            name: homelab-backup.timer
+            state: started
+            enabled: true
+            scope: user

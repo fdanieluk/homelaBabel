@@ -1,0 +1,31 @@
+# Each repository is <mount>/restic. The HDD one must be there; the USB
+# stick is a second copy and is skipped with a warning when unplugged.
+backup_repos:
+  - mount: /mnt/backup-hdd
+    required: true
+  - mount: /mnt/backup-usb
+    required: false
+# Hand-made; a copy must also live in the password manager, otherwise the
+# backup is unreadable after a disk failure
+backup_password_file: .config/homelab/restic_pass
+# Before podman-auto-update at 04:00
+backup_time: "03:30"
+backup_keep: --keep-daily 7 --keep-weekly 4 --keep-monthly 6
+
+# Relative to $HOME
+backup_paths:
+  - homeassistant
+  - frigate/config
+  - mosquitto
+  - pihole
+  - .config/homelab
+  - .dh.sh
+# Live SQLite files are skipped: HA's own nightly backups in
+# homeassistant/backups hold a consistent copy of its database
+backup_excludes:
+  - homeassistant/home-assistant_v2.db*
+  - homeassistant/home-assistant.log*
+  - homeassistant/deps
+  - homeassistant/tts
+  - frigate/config/frigate.db*
+  - frigate/config/model_cache

@@ -17,6 +17,9 @@
 - name: Frigate
   ansible.builtin.import_playbook: deploy-frigate.yml
 
+- name: Backup
+  ansible.builtin.import_playbook: deploy-backup.yml
+
 - name: Podman auto-update schedule
   hosts: all
   become: false

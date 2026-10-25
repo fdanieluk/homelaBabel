@@ -11,6 +11,11 @@
       ansible.builtin.include_vars:
         file: "{{ ansible_env.HOME }}/{{ frigate_private_vars }}"
 
+    - name: Require mounted recordings disk
+      ansible.builtin.command:
+        cmd: mountpoint -q {{ frigate_media }}
+      changed_when: false
+
     - name: Deploy Frigate quadlet
       ansible.builtin.include_role:
         name: quadlet
@@ -21,8 +26,6 @@
           - path: frigate
             mode: "0700"
           - path: frigate/config
-            mode: "0700"
-          - path: frigate/media
             mode: "0700"
         # Seed only: the Frigate UI owns config.yml after the first run
         quadlet_files:

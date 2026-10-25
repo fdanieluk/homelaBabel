@@ -13,12 +13,14 @@ AddDevice=/dev/dri/renderD128
 ShmSize=256m
 Tmpfs=/tmp/cache:size=1g
 Volume=%h/frigate/config:/config:Z
-Volume=%h/frigate/media:/media/frigate:Z
+Volume={{ frigate_media }}:/media/frigate:Z
 Volume=/etc/localtime:/etc/localtime:ro
 # Hand-made secrets on babel, never in git
 EnvironmentFile=%h/{{ frigate_secrets }}
 
 [Service]
+# Never record onto the system disk if the recordings disk failed to mount
+ExecStartPre=/usr/bin/mountpoint -q {{ frigate_media }}
 Restart=always
 RestartSec=5
 TimeoutStartSec=900

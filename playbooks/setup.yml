@@ -1,5 +1,7 @@
 - name: Base server setup
   hosts: all
+  vars_files:
+    - ../vars/storage.yml
   vars:
     # babel resolves via public DNS, never via its own Pi-hole
     host_dns: "1.1.1.1,9.9.9.9"
@@ -15,7 +17,16 @@
           - vim
           - nano
           - unzip
+          - restic
+          - smartmontools
         state: present
+
+    # Watches disk health (SMART) and logs warnings to the journal
+    - name: Enable and start smartd
+      ansible.builtin.systemd_service:
+        name: smartd
+        state: started
+        enabled: true
 
     # Services run as Quadlets now; nothing uses compose
     - name: Remove unused packages
@@ -137,6 +148,39 @@
       ansible.builtin.command:
         cmd: nmcli device reapply {{ ansible_default_ipv4.interface }}
       when: nm_dns_changed.changed
+
+    - name: Look for extra disks by label
+      ansible.builtin.command:
+        cmd: blkid -L {{ item.label }}
+      loop: "{{ storage_mounts }}"
+      register: storage_found
+      changed_when: false
+      failed_when: false
+
+    # Mounted when the disk is there, otherwise only written to fstab, so
+    # this playbook also runs before the disks are formatted
+    - name: Mount extra disks
+      ansible.posix.mount:
+        src: "LABEL={{ item.item.label }}"
+        path: "{{ item.item.path }}"
+        fstype: xfs
+        opts: defaults,nofail,noatime,x-systemd.device-timeout=10s
+        state: "{{ 'mounted' if item.rc == 0 else 'present' }}"
+      loop: "{{ storage_found.results }}"
+      loop_control:
+        label: "{{ item.item.label }}"
+
+    - name: Give the user the mounted disks
+      ansible.builtin.file:
+        path: "{{ item.item.path }}"
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0700"
+      loop: "{{ storage_found.results }}"
+      loop_control:
+        label: "{{ item.item.label }}"
+      when: item.rc == 0
 
     - name: Enable linger so user services start at boot
       ansible.builtin.command:

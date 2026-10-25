@@ -1,0 +1,9 @@
+# Extra disks, formatted by hand as xfs with these labels. Mounted by label,
+# so no hardware IDs land in the repo; nofail keeps boot working without them.
+storage_mounts:
+  - label: backup-hdd
+    path: /mnt/backup-hdd
+  - label: backup-usb
+    path: /mnt/backup-usb
+  - label: frigate
+    path: /mnt/frigate

@@ -5,5 +5,7 @@ frigate_image: ghcr.io/blakeblackshear/frigate:0.18.2
 frigate_private_vars: .config/homelab/frigate.yml
 # FRIGATE_RTSP_PASSWORD (URL-encoded) and FRIGATE_MQTT_PASSWORD
 frigate_secrets: .config/homelab/frigate.env
+# Recordings on the 4 TB disk (vars/storage.yml), not on the system NVMe
+frigate_media: /mnt/frigate
 frigate_detect_fps: 5
 frigate_retain_days: 3

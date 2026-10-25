@@ -1,0 +1,46 @@
+#!/bin/bash
+# Nightly restic backup of babel service data, one copy per repository.
+# Deployed by Ansible (deploy-backup.yml); edit in the repo, not here.
+set -uo pipefail
+
+export RESTIC_PASSWORD_FILE=$HOME/{{ backup_password_file }}
+cd "$HOME"
+status=0
+
+# Subshell with set -e: any failing step fails this repository only
+backup() (
+    set -e
+    export RESTIC_REPOSITORY=$1/restic
+    # podman unshare runs restic as root of the rootless user namespace, so
+    # it can read files owned by container sub-UIDs (Pi-hole). Repo files it
+    # creates still belong to this user on the host.
+    podman unshare restic backup --one-file-system --tag nightly \
+{% for e in backup_excludes %}
+        --exclude '{{ e }}' \
+{% endfor %}
+{% for p in backup_paths %}
+        {{ p }}{{ ' \\' if not loop.last }}
+{% endfor %}
+    podman unshare restic forget --prune {{ backup_keep }}
+    # Sundays: verify a sample of the stored data, not just the index
+    if [ "$(date +%u)" = 7 ]; then
+        podman unshare restic check --read-data-subset=10%
+    fi
+)
+
+{% for r in backup_repos %}
+if mountpoint -q {{ r.mount }}; then
+    echo "=== {{ r.mount }}"
+    backup {{ r.mount }}
+    [ $? -eq 0 ] || status=1
+else
+{% if r.required %}
+    echo "{{ r.mount }} is not mounted, no backup made" >&2
+    status=1
+{% else %}
+    echo "{{ r.mount }} is not mounted, skipping this optional copy" >&2
+{% endif %}
+fi
+
+{% endfor %}
+exit $status

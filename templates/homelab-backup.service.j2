@@ -1,0 +1,6 @@
+[Unit]
+Description=Nightly restic backup to the USB stick
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/homelab-backup
