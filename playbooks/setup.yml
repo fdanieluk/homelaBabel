@@ -43,14 +43,6 @@
         immediate: true
         state: enabled
 
-    # electric-eye retired; drop this task once it has run on babel
-    - name: Close former electric-eye port in firewalld
-      ansible.posix.firewalld:
-        port: 8000/tcp
-        permanent: true
-        immediate: true
-        state: disabled
-
     - name: Open DNS in firewalld (Pi-hole)
       ansible.posix.firewalld:
         service: dns

@@ -8,16 +8,6 @@
 - name: Pi-hole
   ansible.builtin.import_playbook: deploy-pihole.yml
 
-# Replaced by the Mobilus integration in Home Assistant; drop this play
-# once it has run on babel. Data in ~/electric-eye is left in place.
-- name: Retire electric-eye
-  hosts: all
-  become: false
-  roles:
-    - role: quadlet
-      quadlet_name: electric-eye
-      quadlet_state: absent
-
 - name: Podman auto-update schedule
   hosts: all
   become: false
