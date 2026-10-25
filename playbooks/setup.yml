@@ -11,12 +11,18 @@
           - git
           - python3
           - podman
-          - podman-compose
           - htop
           - vim
           - nano
           - unzip
         state: present
+
+    # Services run as Quadlets now; nothing uses compose
+    - name: Remove unused packages
+      ansible.builtin.dnf:
+        name:
+          - podman-compose
+        state: absent
 
     - name: Install avahi (mDNS)
       ansible.builtin.dnf:
