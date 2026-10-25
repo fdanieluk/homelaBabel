@@ -1,0 +1,25 @@
+[Unit]
+Description=Jellyfin media server
+
+[Container]
+ContainerName=jellyfin
+Image={{ jellyfin_image }}
+AutoUpdate=registry
+# Web UI and clients on 8096; host network also covers LAN discovery
+Network=host
+# iGPU (Quick Sync / VAAPI) for hardware transcoding
+AddDevice=/dev/dri/renderD128
+Volume=%h/jellyfin/config:/config:Z
+Volume=%h/jellyfin/cache:/cache:Z
+# Shared with Plex: lowercase z (shared SELinux label), read-only
+Volume={{ media_path }}:/media:ro,z
+
+[Service]
+# Never start against an empty mount point if the media disk is missing
+ExecStartPre=/usr/bin/mountpoint -q {{ media_path }}
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

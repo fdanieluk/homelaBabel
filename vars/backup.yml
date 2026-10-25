@@ -20,6 +20,11 @@ backup_paths:
   - pihole
   - .config/homelab
   - .dh.sh
+  # Watch history and settings; the library itself can be rescanned.
+  # Plex keeps its own dated database copies in the same directory.
+  - plex/config/Library/Application Support/Plex Media Server/Preferences.xml
+  - plex/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases
+  - jellyfin/config
 # Live SQLite files are skipped: HA's own nightly backups in
 # homeassistant/backups hold a consistent copy of its database
 backup_excludes:
@@ -29,3 +34,5 @@ backup_excludes:
   - homeassistant/tts
   - frigate/config/frigate.db*
   - frigate/config/model_cache
+  - jellyfin/config/metadata
+  - jellyfin/config/log

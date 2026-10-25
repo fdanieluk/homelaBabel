@@ -1,0 +1,18 @@
+- name: Deploy Jellyfin
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/storage.yml
+    - ../vars/jellyfin.yml
+
+  roles:
+    - role: quadlet
+      quadlet_name: jellyfin
+      quadlet_image: "{{ jellyfin_image }}"
+      quadlet_dirs:
+        - path: jellyfin
+          mode: "0700"
+        - path: jellyfin/config
+          mode: "0700"
+        - path: jellyfin/cache
+          mode: "0700"

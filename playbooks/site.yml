@@ -17,6 +17,12 @@
 - name: Frigate
   ansible.builtin.import_playbook: deploy-frigate.yml
 
+- name: Plex
+  ansible.builtin.import_playbook: deploy-plex.yml
+
+- name: Jellyfin
+  ansible.builtin.import_playbook: deploy-jellyfin.yml
+
 - name: Backup
   ansible.builtin.import_playbook: deploy-backup.yml
 

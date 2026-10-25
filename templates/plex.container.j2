@@ -1,0 +1,29 @@
+[Unit]
+Description=Plex Media Server
+
+[Container]
+ContainerName=plex
+Image={{ plex_image }}
+AutoUpdate=registry
+# Web UI and clients on 32400; host network also covers LAN discovery
+Network=host
+# Plex runs as container root, which is this user on the host
+Environment=PLEX_UID=0
+Environment=PLEX_GID=0
+Environment=TZ=Europe/Warsaw
+# iGPU (Quick Sync) for hardware transcoding; Plex uses it only with Plex Pass
+AddDevice=/dev/dri/renderD128
+Volume=%h/plex/config:/config:Z
+Volume=%h/plex/transcode:/transcode:Z
+# Shared with Jellyfin: lowercase z (shared SELinux label), read-only
+Volume={{ media_path }}:/data:ro,z
+
+[Service]
+# Never start against an empty mount point if the media disk is missing
+ExecStartPre=/usr/bin/mountpoint -q {{ media_path }}
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

@@ -7,6 +7,19 @@ export RESTIC_PASSWORD_FILE=$HOME/{{ backup_password_file }}
 cd "$HOME"
 status=0
 
+# Paths of a removed service are skipped instead of failing the backup
+paths=()
+for p in \
+{% for p in backup_paths %}
+    '{{ p }}'{{ ' \\' if not loop.last else '; do' }}
+{% endfor %}
+    if [ -e "$p" ]; then
+        paths+=("$p")
+    else
+        echo "skipping missing path: $p" >&2
+    fi
+done
+
 # Subshell with set -e: any failing step fails this repository only
 backup() (
     set -e
@@ -18,9 +31,7 @@ backup() (
 {% for e in backup_excludes %}
         --exclude '{{ e }}' \
 {% endfor %}
-{% for p in backup_paths %}
-        {{ p }}{{ ' \\' if not loop.last }}
-{% endfor %}
+        "${paths[@]}"
     podman unshare restic forget --prune {{ backup_keep }}
     # Sundays: verify a sample of the stored data, not just the index
     if [ "$(date +%u)" = 7 ]; then

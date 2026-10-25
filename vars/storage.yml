@@ -11,3 +11,6 @@ storage_mounts:
     path: /mnt/frigate
   - label: media
     path: /mnt/media
+
+# Movies and shows, read by both Plex and Jellyfin
+media_path: /mnt/media

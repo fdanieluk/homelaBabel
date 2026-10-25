@@ -1,0 +1,18 @@
+- name: Deploy Plex
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/storage.yml
+    - ../vars/plex.yml
+
+  roles:
+    - role: quadlet
+      quadlet_name: plex
+      quadlet_image: "{{ plex_image }}"
+      quadlet_dirs:
+        - path: plex
+          mode: "0700"
+        - path: plex/config
+          mode: "0700"
+        - path: plex/transcode
+          mode: "0700"
