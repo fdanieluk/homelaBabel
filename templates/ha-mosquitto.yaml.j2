@@ -1,0 +1,136 @@
+{% raw %}
+# Mosquitto broker statistics from its $SYS topics (published every 10 s).
+# Deployed by Ansible (deploy-homeassistant.yml); edit in the repo, not here.
+mqtt:
+  sensor:
+    - name: Wersja
+      unique_id: mosquitto_version
+      state_topic: "$SYS/broker/version"
+      value_template: "{{ value.split()[-1] }}"
+      icon: mdi:tag
+      entity_category: diagnostic
+      device: &mosquitto
+        identifiers: [mosquitto_babel]
+        name: Mosquitto
+        manufacturer: Eclipse
+        model: MQTT broker
+    - name: Czas działania
+      unique_id: mosquitto_uptime
+      state_topic: "$SYS/broker/uptime"
+      value_template: "{{ value.split()[0] | int }}"
+      unit_of_measurement: s
+      device_class: duration
+      device: *mosquitto
+    - name: Klienci połączeni
+      unique_id: mosquitto_clients_connected
+      state_topic: "$SYS/broker/clients/connected"
+      state_class: measurement
+      icon: mdi:lan-connect
+      device: *mosquitto
+    - name: Klienci rozłączeni
+      unique_id: mosquitto_clients_disconnected
+      state_topic: "$SYS/broker/clients/disconnected"
+      state_class: measurement
+      icon: mdi:lan-disconnect
+      device: *mosquitto
+    - name: Klienci łącznie
+      unique_id: mosquitto_clients_total
+      state_topic: "$SYS/broker/clients/total"
+      state_class: measurement
+      icon: mdi:account-multiple
+      device: *mosquitto
+    - name: Klienci maksymalnie
+      unique_id: mosquitto_clients_maximum
+      state_topic: "$SYS/broker/clients/maximum"
+      state_class: measurement
+      icon: mdi:account-multiple-plus
+      device: *mosquitto
+    - name: Subskrypcje
+      unique_id: mosquitto_subscriptions
+      state_topic: "$SYS/broker/subscriptions/count"
+      state_class: measurement
+      icon: mdi:playlist-check
+      device: *mosquitto
+    - name: Wiadomości zachowane
+      unique_id: mosquitto_retained
+      state_topic: "$SYS/broker/retained messages/count"
+      state_class: measurement
+      icon: mdi:pin
+      device: *mosquitto
+    - name: Wiadomości odebrane
+      unique_id: mosquitto_messages_received
+      state_topic: "$SYS/broker/messages/received"
+      state_class: total_increasing
+      icon: mdi:email-arrow-left
+      device: *mosquitto
+    - name: Wiadomości wysłane
+      unique_id: mosquitto_messages_sent
+      state_topic: "$SYS/broker/messages/sent"
+      state_class: total_increasing
+      icon: mdi:email-arrow-right
+      device: *mosquitto
+    - name: Wiadomości odebrane na minutę
+      unique_id: mosquitto_load_messages_received
+      state_topic: "$SYS/broker/load/messages/received/1min"
+      unit_of_measurement: msg/min
+      state_class: measurement
+      icon: mdi:email-arrow-left-outline
+      device: *mosquitto
+    - name: Wiadomości wysłane na minutę
+      unique_id: mosquitto_load_messages_sent
+      state_topic: "$SYS/broker/load/messages/sent/1min"
+      unit_of_measurement: msg/min
+      state_class: measurement
+      icon: mdi:email-arrow-right-outline
+      device: *mosquitto
+    - name: Odrzucone publikacje
+      unique_id: mosquitto_publish_dropped
+      state_topic: "$SYS/broker/publish/messages/dropped"
+      state_class: total_increasing
+      icon: mdi:email-remove
+      device: *mosquitto
+    - name: Ruch odebrany
+      unique_id: mosquitto_load_bytes_received
+      state_topic: "$SYS/broker/load/bytes/received/1min"
+      value_template: "{{ (value | float / 60) | round(1) }}"
+      unit_of_measurement: B/s
+      device_class: data_rate
+      state_class: measurement
+      device: *mosquitto
+    - name: Ruch wysłany
+      unique_id: mosquitto_load_bytes_sent
+      state_topic: "$SYS/broker/load/bytes/sent/1min"
+      value_template: "{{ (value | float / 60) | round(1) }}"
+      unit_of_measurement: B/s
+      device_class: data_rate
+      state_class: measurement
+      device: *mosquitto
+    - name: Bajty odebrane
+      unique_id: mosquitto_bytes_received
+      state_topic: "$SYS/broker/bytes/received"
+      unit_of_measurement: B
+      device_class: data_size
+      state_class: total_increasing
+      device: *mosquitto
+    - name: Bajty wysłane
+      unique_id: mosquitto_bytes_sent
+      state_topic: "$SYS/broker/bytes/sent"
+      unit_of_measurement: B
+      device_class: data_size
+      state_class: total_increasing
+      device: *mosquitto
+    - name: Połączenia na minutę
+      unique_id: mosquitto_load_connections
+      state_topic: "$SYS/broker/load/connections/1min"
+      unit_of_measurement: conn/min
+      state_class: measurement
+      icon: mdi:connection
+      device: *mosquitto
+    - name: Pamięć
+      unique_id: mosquitto_heap
+      state_topic: "$SYS/broker/heap/current"
+      unit_of_measurement: B
+      device_class: data_size
+      state_class: measurement
+      device: *mosquitto
+{% endraw %}

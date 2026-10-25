@@ -28,6 +28,15 @@ objects:
     - person
     - car
 
+# Both default to off in 0.18
+detect:
+  enabled: true
+
+snapshots:
+  enabled: true
+  retain:
+    default: {{ frigate_retain_days }}
+
 record:
   enabled: true
   continuous:

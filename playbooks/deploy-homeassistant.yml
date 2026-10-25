@@ -29,4 +29,9 @@
         quadlet_dirs:
           - path: homeassistant
             mode: "0755"
+          - path: homeassistant/packages
+            mode: "0755"
+        quadlet_files:
+          - src: ha-mosquitto.yaml.j2
+            dest: homeassistant/packages/mosquitto.yaml
         quadlet_restart: "{{ hacs_installed.changed }}"
