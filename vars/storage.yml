@@ -1,5 +1,7 @@
 # Extra disks, formatted by hand as xfs with these labels. Mounted by label,
 # so no hardware IDs land in the repo; nofail keeps boot working without them.
+# 4 TB HDD: backup-hdd is a plain partition; frigate and media are LVs in
+# volume group "data", with unallocated space left to grow either online.
 storage_mounts:
   - label: backup-hdd
     path: /mnt/backup-hdd
@@ -7,3 +9,5 @@ storage_mounts:
     path: /mnt/backup-usb
   - label: frigate
     path: /mnt/frigate
+  - label: media
+    path: /mnt/media
