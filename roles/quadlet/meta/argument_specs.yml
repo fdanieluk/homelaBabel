@@ -1,0 +1,24 @@
+argument_specs:
+  main:
+    short_description: Run a container as a rootless podman Quadlet user service
+    options:
+      quadlet_name:
+        type: str
+        required: true
+        description: Unit, template and .container file name
+      quadlet_state:
+        type: str
+        choices: [present, absent]
+        default: present
+      quadlet_image:
+        type: str
+        description: Fully qualified image, pulled when the unit changes (required for present)
+      quadlet_template:
+        type: str
+      quadlet_dirs:
+        type: list
+        elements: dict
+        default: []
+      quadlet_restart:
+        type: bool
+        default: false

@@ -1,0 +1,23 @@
+- name: Check for {{ quadlet_name }} quadlet unit
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.config/containers/systemd/{{ quadlet_name }}.container"
+  register: quadlet_file
+
+- name: Stop {{ quadlet_name }}
+  ansible.builtin.systemd:
+    name: "{{ quadlet_name }}"
+    state: stopped
+    scope: user
+  when: quadlet_file.stat.exists
+
+- name: Remove {{ quadlet_name }} quadlet unit
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/containers/systemd/{{ quadlet_name }}.container"
+    state: absent
+  register: quadlet_removed
+
+- name: Reload systemd user daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+  when: quadlet_removed.changed

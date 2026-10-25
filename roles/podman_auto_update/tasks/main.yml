@@ -1,0 +1,35 @@
+# Pulls new images for units with AutoUpdate=registry and restarts them;
+# rolls back to the previous image if the new one fails to start
+- name: Schedule podman auto-update as user service
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
+  block:
+    - name: Ensure timer drop-in directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.config/systemd/user/podman-auto-update.timer.d"
+        state: directory
+        mode: "0755"
+
+    - name: Override timer schedule
+      ansible.builtin.copy:
+        content: |
+          [Timer]
+          OnCalendar=
+          OnCalendar=*-*-* {{ podman_auto_update_time }}
+        dest: "{{ ansible_env.HOME }}/.config/systemd/user/podman-auto-update.timer.d/schedule.conf"
+        mode: "0644"
+      register: auto_update_schedule
+
+    # daemon-reload re-arms the timer with the new schedule
+    - name: Reload systemd user daemon
+      ansible.builtin.systemd:
+        daemon_reload: true
+        scope: user
+      when: auto_update_schedule.changed
+
+    - name: Enable podman auto-update timer
+      ansible.builtin.systemd:
+        name: podman-auto-update.timer
+        state: started
+        enabled: true
+        scope: user

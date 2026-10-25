@@ -1,0 +1,6 @@
+- name: Manage {{ quadlet_name }} as user service
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
+  block:
+    - name: Include {{ quadlet_state }} tasks
+      ansible.builtin.include_tasks: "{{ quadlet_state }}.yml"

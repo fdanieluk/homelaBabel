@@ -4,6 +4,7 @@ Description=Home Assistant
 [Container]
 ContainerName=homeassistant
 Image={{ homeassistant_image }}
+AutoUpdate=registry
 Network=host
 Volume=%h/homeassistant:/config:Z
 Volume=/etc/localtime:/etc/localtime:ro

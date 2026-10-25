@@ -1,0 +1,2 @@
+# Daily run time; the stock timer adds up to 15 min of random delay
+podman_auto_update_time: "04:00"

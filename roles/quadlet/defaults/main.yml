@@ -1,0 +1,8 @@
+# present = deploy and keep running, absent = stop and remove the unit
+quadlet_state: present
+quadlet_template: "{{ playbook_dir }}/../templates/{{ quadlet_name }}.container.j2"
+# Data directories under $HOME: [{path: x, mode: "0755"}]; omit mode for
+# directories owned by a container sub-UID (chmod would fail)
+quadlet_dirs: []
+# Extra reason to restart, e.g. a plugin was installed next to the config
+quadlet_restart: false

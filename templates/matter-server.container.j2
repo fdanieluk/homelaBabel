@@ -4,6 +4,7 @@ Description=Matter server (matter.js) for Home Assistant
 [Container]
 ContainerName=matter-server
 Image={{ matter_server_image }}
+AutoUpdate=registry
 Network=host
 UserNS=keep-id:uid=1000,gid=1000
 Volume=%h/matter-server:/data:Z
