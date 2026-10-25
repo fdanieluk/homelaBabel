@@ -8,8 +8,9 @@ AutoUpdate=registry
 # Host network and PID namespace so it reports babel, not the container
 Network=host
 PodmanArgs=--pid=host
-# Host filesystems for disk usage; recursive, so /home and /boot come along
-Volume=/:/rootfs:ro
+# Host filesystems for disk usage; recursive, so /home and /boot come along.
+# rslave: disks mounted later (e.g. a re-plugged USB stick) show up too
+Volume=/:/rootfs:ro,rslave
 # Whole directory, so a rewritten glances.conf is seen after restart
 Volume=%h/glances:/etc/glances:ro,Z
 Volume=/etc/localtime:/etc/localtime:ro
