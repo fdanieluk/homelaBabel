@@ -3,6 +3,7 @@
   vars:
     # babel resolves via public DNS, never via its own Pi-hole
     host_dns: "1.1.1.1,9.9.9.9"
+    lan_subnet: 192.168.68.0/22
   tasks:
     - name: Install base packages
       ansible.builtin.dnf:
@@ -59,6 +60,26 @@
     - name: Open Pi-hole web UI port in firewalld
       ansible.posix.firewalld:
         port: 8081/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Serve NTP to the LAN (cameras have no internet access)
+      ansible.builtin.lineinfile:
+        path: /etc/chrony.conf
+        regexp: "^allow "
+        line: "allow {{ lan_subnet }}"
+      register: chrony_conf
+
+    - name: Restart chronyd after config change
+      ansible.builtin.systemd_service:
+        name: chronyd
+        state: restarted
+      when: chrony_conf.changed
+
+    - name: Open NTP in firewalld
+      ansible.posix.firewalld:
+        service: ntp
         permanent: true
         immediate: true
         state: enabled
