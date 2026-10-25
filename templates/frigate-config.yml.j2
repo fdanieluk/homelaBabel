@@ -54,6 +54,12 @@ go2rtc:
 cameras:
 {% for cam in frigate_cameras %}
   {{ cam.name }}:
+{% if cam.friendly_name is defined %}
+    friendly_name: "{{ cam.friendly_name }}"
+{% endif %}
+    # UI order follows the private camera list (walk around the house)
+    ui:
+      order: {{ loop.index }}
     ffmpeg:
       inputs:
         - path: rtsp://127.0.0.1:8554/{{ cam.name }}

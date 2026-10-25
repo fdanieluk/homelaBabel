@@ -5,7 +5,8 @@
     - ../vars/frigate.yml
 
   tasks:
-    # Camera list (frigate_cameras: [{name, host}]) is private, kept on babel
+    # Camera list (frigate_cameras: [{name, friendly_name, host}], in UI order)
+    # is private, kept on babel
     - name: Load private camera list
       ansible.builtin.include_vars:
         file: "{{ ansible_env.HOME }}/{{ frigate_private_vars }}"
