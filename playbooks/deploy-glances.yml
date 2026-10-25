@@ -1,0 +1,16 @@
+- name: Deploy Glances
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/glances.yml
+
+  roles:
+    - role: quadlet
+      quadlet_name: glances
+      quadlet_image: "{{ glances_image }}"
+      quadlet_dirs:
+        - path: glances
+          mode: "0755"
+      quadlet_files:
+        - src: glances.conf.j2
+          dest: glances/glances.conf

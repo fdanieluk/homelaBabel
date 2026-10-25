@@ -63,6 +63,14 @@
         immediate: true
         state: enabled
 
+    # Authenticated UI only; Frigate's unauthenticated port 5000 stays closed
+    - name: Open Frigate UI port in firewalld
+      ansible.posix.firewalld:
+        port: 8971/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+
     - name: Serve NTP to the LAN (cameras have no internet access)
       ansible.builtin.lineinfile:
         path: /etc/chrony.conf

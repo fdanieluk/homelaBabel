@@ -1,0 +1,9 @@
+# Clients (HA, Frigate) run on this host; not reachable from the LAN
+listener 1883 127.0.0.1
+allow_anonymous false
+# Created by hand with mosquitto_passwd, never in git
+password_file /mosquitto/config/passwd
+
+persistence true
+persistence_location /mosquitto/data/
+log_dest stdout

@@ -1,0 +1,37 @@
+- name: Deploy Frigate
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/frigate.yml
+
+  tasks:
+    # Camera list (frigate_cameras: [{name, host}]) is private, kept on babel
+    - name: Load private camera list
+      ansible.builtin.include_vars:
+        file: "{{ ansible_env.HOME }}/{{ frigate_private_vars }}"
+
+    - name: Deploy Frigate quadlet
+      ansible.builtin.include_role:
+        name: quadlet
+      vars:
+        quadlet_name: frigate
+        quadlet_image: "{{ frigate_image }}"
+        quadlet_dirs:
+          - path: frigate
+            mode: "0700"
+          - path: frigate/config
+            mode: "0700"
+          - path: frigate/media
+            mode: "0700"
+        # Seed only: the Frigate UI owns config.yml after the first run
+        quadlet_files:
+          - src: frigate-config.yml.j2
+            dest: frigate/config/config.yml
+            mode: "0600"
+            force: false
+        # Editing these by hand needs: systemctl --user restart frigate
+        quadlet_required_files:
+          - path: "{{ frigate_private_vars }}"
+            mode: "0600"
+          - path: "{{ frigate_secrets }}"
+            mode: "0600"

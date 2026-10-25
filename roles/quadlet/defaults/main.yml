@@ -4,5 +4,12 @@ quadlet_template: "{{ playbook_dir }}/../templates/{{ quadlet_name }}.container.
 # Data directories under $HOME: [{path: x, mode: "0755"}]; omit mode for
 # directories owned by a container sub-UID (chmod would fail)
 quadlet_dirs: []
+# Config files rendered before the container starts; a change restarts it.
+# [{src: x.j2, dest: path under $HOME, mode: "0644", force: true}]
+# force: false only seeds the file, e.g. when an app's UI owns it afterwards
+quadlet_files: []
+# Hand-made files under $HOME (secrets, private data) that must exist
+# before the start; their mode is enforced. [{path: x, mode: "0600"}]
+quadlet_required_files: []
 # Extra reason to restart, e.g. a plugin was installed next to the config
 quadlet_restart: false

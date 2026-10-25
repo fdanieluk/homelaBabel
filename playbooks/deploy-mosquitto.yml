@@ -1,0 +1,24 @@
+- name: Deploy Mosquitto
+  hosts: all
+  become: false
+  vars_files:
+    - ../vars/mosquitto.yml
+
+  roles:
+    - role: quadlet
+      quadlet_name: mosquitto
+      quadlet_image: "{{ mosquitto_image }}"
+      quadlet_dirs:
+        - path: mosquitto
+          mode: "0700"
+        - path: mosquitto/config
+          mode: "0700"
+        - path: mosquitto/data
+          mode: "0700"
+      quadlet_files:
+        - src: mosquitto.conf.j2
+          dest: mosquitto/config/mosquitto.conf
+      # Password hashes only; created by hand with mosquitto_passwd
+      quadlet_required_files:
+        - path: mosquitto/config/passwd
+          mode: "0700"

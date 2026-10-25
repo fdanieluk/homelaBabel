@@ -8,6 +8,15 @@
 - name: Pi-hole
   ansible.builtin.import_playbook: deploy-pihole.yml
 
+- name: Mosquitto
+  ansible.builtin.import_playbook: deploy-mosquitto.yml
+
+- name: Glances
+  ansible.builtin.import_playbook: deploy-glances.yml
+
+- name: Frigate
+  ansible.builtin.import_playbook: deploy-frigate.yml
+
 - name: Podman auto-update schedule
   hosts: all
   become: false

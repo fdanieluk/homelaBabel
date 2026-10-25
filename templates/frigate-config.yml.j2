@@ -1,0 +1,71 @@
+# Seeded once by Ansible; from here on edited in the Frigate UI.
+# {FRIGATE_*} placeholders are filled by Frigate from the hand-made env file.
+mqtt:
+  host: 127.0.0.1
+  port: 1883
+  user: frigate
+  password: "{FRIGATE_MQTT_PASSWORD}"
+
+# VAAPI fails on these H.265 camera streams; QSV decodes them
+ffmpeg:
+  hwaccel_args: preset-intel-qsv-h265
+
+detectors:
+  ov:
+    type: openvino
+    device: GPU
+
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+
+objects:
+  track:
+    - person
+    - car
+
+record:
+  enabled: true
+  continuous:
+    days: 0
+  motion:
+    days: {{ frigate_retain_days }}
+  alerts:
+    retain:
+      days: {{ frigate_retain_days }}
+  detections:
+    retain:
+      days: {{ frigate_retain_days }}
+
+# One RTSP session per stream to each camera; Frigate and HA read the restream
+go2rtc:
+  streams:
+{% for cam in frigate_cameras %}
+    {{ cam.name }}:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@{{ cam.host }}:554/cam/realmonitor?channel=1&subtype=0
+    {{ cam.name }}_sub:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@{{ cam.host }}:554/cam/realmonitor?channel=1&subtype=1
+{% endfor %}
+
+cameras:
+{% for cam in frigate_cameras %}
+  {{ cam.name }}:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/{{ cam.name }}
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/{{ cam.name }}_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    detect:
+      width: 704
+      height: 576
+      fps: {{ frigate_detect_fps }}
+{% endfor %}

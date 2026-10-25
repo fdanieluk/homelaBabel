@@ -19,6 +19,16 @@ argument_specs:
         type: list
         elements: dict
         default: []
+      quadlet_files:
+        type: list
+        elements: dict
+        default: []
+        description: Config files rendered from templates/ before the start
+      quadlet_required_files:
+        type: list
+        elements: dict
+        default: []
+        description: Hand-made files that must exist; mode is enforced
       quadlet_restart:
         type: bool
         default: false

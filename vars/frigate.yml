@@ -1,0 +1,9 @@
+# Pinned: the Frigate UI owns config.yml and a major upgrade migrates it,
+# so bump this deliberately instead of auto-updating
+frigate_image: ghcr.io/blakeblackshear/frigate:0.18.2
+# Hand-made private files, relative to $HOME, never in this public repo
+frigate_private_vars: .config/homelab/frigate.yml
+# FRIGATE_RTSP_PASSWORD (URL-encoded) and FRIGATE_MQTT_PASSWORD
+frigate_secrets: .config/homelab/frigate.env
+frigate_detect_fps: 5
+frigate_retain_days: 3

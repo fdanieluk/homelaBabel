@@ -1,0 +1,20 @@
+[Unit]
+Description=Mosquitto MQTT broker
+
+[Container]
+ContainerName=mosquitto
+Image={{ mosquitto_image }}
+AutoUpdate=registry
+Network=host
+# Image runs as uid 1883; map it to the host user so it owns the bind mounts
+UserNS=keep-id:uid=1883,gid=1883
+Volume=%h/mosquitto/config:/mosquitto/config:Z
+Volume=%h/mosquitto/data:/mosquitto/data:Z
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

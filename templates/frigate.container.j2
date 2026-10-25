@@ -1,0 +1,27 @@
+[Unit]
+Description=Frigate NVR
+
+[Container]
+ContainerName=frigate
+Image={{ frigate_image }}
+# No AutoUpdate: version is pinned in vars/frigate.yml
+# UI 8971 (auth), RTSP restream 8554; unauthenticated 5000 stays behind firewalld
+Network=host
+# iGPU: QSV decoding and OpenVINO detection
+AddDevice=/dev/dri/renderD128
+# Detect frames for all cameras pass through shared memory
+ShmSize=256m
+Tmpfs=/tmp/cache:size=1g
+Volume=%h/frigate/config:/config:Z
+Volume=%h/frigate/media:/media/frigate:Z
+Volume=/etc/localtime:/etc/localtime:ro
+# Hand-made secrets on babel, never in git
+EnvironmentFile=%h/{{ frigate_secrets }}
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,24 @@
+[Unit]
+Description=Glances system monitor API for Home Assistant
+
+[Container]
+ContainerName=glances
+Image={{ glances_image }}
+AutoUpdate=registry
+# Host network and PID namespace so it reports babel, not the container
+Network=host
+PodmanArgs=--pid=host
+# Host filesystems for disk usage; recursive, so /home and /boot come along
+Volume=/:/rootfs:ro
+# Whole directory, so a rewritten glances.conf is seen after restart
+Volume=%h/glances:/etc/glances:ro,Z
+Volume=/etc/localtime:/etc/localtime:ro
+Environment="GLANCES_OPT=-C /etc/glances/glances.conf -w --disable-webui --bind 127.0.0.1"
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

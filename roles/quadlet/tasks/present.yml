@@ -5,6 +5,37 @@
     mode: "{{ item.mode | default(omit) }}"
   loop: "{{ quadlet_dirs }}"
 
+- name: Check {{ quadlet_name }} hand-made files
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/{{ item.path }}"
+  loop: "{{ quadlet_required_files }}"
+  register: quadlet_required
+
+- name: Require {{ quadlet_name }} hand-made files
+  ansible.builtin.assert:
+    that: quadlet_missing | length == 0
+    fail_msg: "Create these on babel first: {{ quadlet_missing | join(', ') }}"
+  vars:
+    quadlet_missing: >-
+      {{ quadlet_required.results | rejectattr('stat.exists')
+         | map(attribute='item.path') | map('regex_replace', '^', '~/') | list }}
+
+- name: Enforce {{ quadlet_name }} hand-made file modes
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/{{ item.path }}"
+    state: file
+    mode: "{{ item.mode }}"
+  loop: "{{ quadlet_required_files }}"
+
+- name: Render {{ quadlet_name }} config files
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../templates/{{ item.src }}"
+    dest: "{{ ansible_env.HOME }}/{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+    force: "{{ item.force | default(true) }}"
+  loop: "{{ quadlet_files }}"
+  register: quadlet_config
+
 - name: Ensure quadlet directory exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.config/containers/systemd"
@@ -35,7 +66,7 @@
     name: "{{ quadlet_name }}"
     state: restarted
     scope: user
-  when: quadlet_unit.changed or quadlet_restart | bool
+  when: quadlet_unit.changed or quadlet_config.changed or quadlet_restart | bool
 
 - name: Ensure {{ quadlet_name }} is running
   ansible.builtin.systemd:
