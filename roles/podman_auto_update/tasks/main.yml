@@ -1,5 +1,6 @@
 # Pulls new images for units with AutoUpdate=registry and restarts them;
-# rolls back to the previous image if the new one fails to start
+# rolls back to the previous image if the new one fails to start. The stock
+# service already prunes dangling images afterwards (ExecStartPost)
 - name: Schedule podman auto-update as user service
   environment:
     XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
@@ -20,28 +21,12 @@
         mode: "0644"
       register: auto_update_schedule
 
-    - name: Ensure service drop-in directory exists
-      ansible.builtin.file:
-        path: "{{ ansible_env.HOME }}/.config/systemd/user/podman-auto-update.service.d"
-        state: directory
-        mode: "0755"
-
-    # Each update leaves the replaced image dangling (HA alone is ~2.5 GB)
-    - name: Prune dangling images after auto-update
-      ansible.builtin.copy:
-        content: |
-          [Service]
-          ExecStartPost=/usr/bin/podman image prune -f
-        dest: "{{ ansible_env.HOME }}/.config/systemd/user/podman-auto-update.service.d/prune.conf"
-        mode: "0644"
-      register: auto_update_prune
-
     # daemon-reload re-arms the timer with the new schedule
     - name: Reload systemd user daemon
       ansible.builtin.systemd:
         daemon_reload: true
         scope: user
-      when: auto_update_schedule.changed or auto_update_prune.changed
+      when: auto_update_schedule.changed
 
     - name: Enable podman auto-update timer
       ansible.builtin.systemd:
