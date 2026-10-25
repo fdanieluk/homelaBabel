@@ -14,10 +14,12 @@
             path: "{{ ansible_env.HOME }}/{{ backup_password_file }}"
           register: restic_pass
 
-        - name: Require restic password file
+        # An empty file (e.g. a failed command behind ">") would give the
+        # repositories an empty password
+        - name: Require non-empty restic password file
           ansible.builtin.assert:
-            that: restic_pass.stat.exists
-            fail_msg: "Create ~/{{ backup_password_file }} on babel first (and save it in the password manager)"
+            that: restic_pass.stat.exists and restic_pass.stat.size >= 16
+            fail_msg: "Put a 16+ character password in ~/{{ backup_password_file }} on babel first (and save it in the password manager)"
 
         - name: Enforce restic password file mode
           ansible.builtin.file:
