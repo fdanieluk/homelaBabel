@@ -195,7 +195,10 @@
 
     - name: Install Samba
       ansible.builtin.dnf:
-        name: samba
+        name:
+          - samba
+          # Needed by the seboolean module below
+          - python3-libsemanage
         state: present
 
     - name: Write Samba config
