@@ -2,6 +2,7 @@
   hosts: all
   vars_files:
     - ../vars/storage.yml
+    - ../vars/samba.yml
   vars:
     # babel resolves via public DNS, never via its own Pi-hole
     host_dns: "1.1.1.1,9.9.9.9"
@@ -191,6 +192,66 @@
       loop_control:
         label: "{{ item.item.label }}"
       when: item.rc == 0
+
+    - name: Install Samba
+      ansible.builtin.dnf:
+        name: samba
+        state: present
+
+    - name: Write Samba config
+      ansible.builtin.template:
+        src: ../templates/smb.conf.j2
+        dest: /etc/samba/smb.conf
+        mode: "0644"
+        validate: testparm -s %s
+      vars:
+        samba_user: "{{ lookup('env', 'USER') }}"
+      register: smb_conf
+
+    # The shares keep their container labels (Plex, Jellyfin, Frigate), so
+    # Samba gets a boolean instead of relabelling them samba_share_t
+    - name: Let Samba serve the shared disks (SELinux)
+      ansible.posix.seboolean:
+        name: samba_export_all_rw
+        state: true
+        persistent: true
+
+    - name: Check for the Samba user
+      ansible.builtin.command:
+        cmd: pdbedit -L -u {{ lookup('env', 'USER') }}
+      register: smb_user
+      changed_when: false
+      failed_when: false
+
+    # Only sets the password when the user is new; to change it later run
+    # `sudo smbpasswd <user>` by hand
+    - name: Add the Samba user
+      ansible.builtin.command:
+        cmd: smbpasswd -a -s {{ lookup('env', 'USER') }}
+        stdin: "{{ smb_password }}\n{{ smb_password }}"
+      vars:
+        smb_password: "{{ lookup('file', lookup('env', 'HOME') + '/' + samba_password_file) }}"
+      when: smb_user.rc != 0
+      no_log: true
+
+    - name: Enable and start Samba
+      ansible.builtin.systemd_service:
+        name: smb
+        state: started
+        enabled: true
+
+    - name: Restart Samba after config change
+      ansible.builtin.systemd_service:
+        name: smb
+        state: restarted
+      when: smb_conf.changed
+
+    - name: Open Samba in firewalld
+      ansible.posix.firewalld:
+        service: samba
+        permanent: true
+        immediate: true
+        state: enabled
 
     - name: Enable linger so user services start at boot
       ansible.builtin.command:

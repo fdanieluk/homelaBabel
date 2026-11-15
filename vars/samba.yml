@@ -1,0 +1,13 @@
+# Windows file shares on the extra disks (vars/storage.yml)
+samba_shares:
+  # Copy movies and shows in for Plex and Jellyfin
+  - name: media
+    path: /mnt/media
+    writable: true
+  # Browse camera recordings; Frigate manages and deletes these itself
+  - name: frigate
+    path: /mnt/frigate
+    writable: false
+
+# Hand-made private file, relative to $HOME, never in this public repo
+samba_password_file: .config/homelab/samba_pass

@@ -1,0 +1,23 @@
+# Managed by Ansible (setup.yml)
+[global]
+  workgroup = WORKGROUP
+  server string = babel
+  security = user
+  map to guest = never
+  server min protocol = SMB3
+  # LAN only, on top of firewalld
+  hosts allow = 127. {{ lan_subnet }}
+  # No printers on this box
+  load printers = no
+  printing = bsd
+  printcap name = /dev/null
+  disable spoolss = yes
+
+{% for share in samba_shares %}
+[{{ share.name }}]
+  path = {{ share.path }}
+  valid users = {{ samba_user }}
+  read only = {{ 'no' if share.writable else 'yes' }}
+  browseable = yes
+
+{% endfor %}
