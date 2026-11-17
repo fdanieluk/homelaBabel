@@ -1,0 +1,69 @@
+{% raw %}
+# Media library split and totals across all of babel's disks (Glances sensors).
+# Deployed by Ansible (deploy-homeassistant.yml); edit in the repo, not here.
+command_line:
+  # /mnt/media is mounted read-only at /media/biblioteka (homeassistant.container.j2)
+  - sensor:
+      name: Babel filmy
+      unique_id: babel_filmy_rozmiar
+      command: "du -sk /media/biblioteka/filmy | cut -f1"
+      value_template: "{{ (value | int / 1048576) | round(1) }}"
+      unit_of_measurement: GiB
+      device_class: data_size
+      state_class: measurement
+      icon: mdi:movie-open
+      scan_interval: 3600
+  - sensor:
+      name: Babel seriale
+      unique_id: babel_seriale_rozmiar
+      command: "du -sk /media/biblioteka/seriale | cut -f1"
+      value_template: "{{ (value | int / 1048576) | round(1) }}"
+      unit_of_measurement: GiB
+      device_class: data_size
+      state_class: measurement
+      icon: mdi:television-classic
+      scan_interval: 3600
+
+# Sum of every mounted filesystem Glances reports (NVMe, HDD, pendrive)
+template:
+  - sensor:
+      - name: Babel dyski razem rozmiar
+        unique_id: babel_dyski_razem_rozmiar
+        unit_of_measurement: GiB
+        device_class: data_size
+        state_class: measurement
+        icon: mdi:harddisk
+        state: >-
+          {{ ['root', 'home', 'frigate', 'media', 'backup_hdd', 'backup_usb']
+             | map('regex_replace', '^(.*)$', 'sensor.babel_\\1_disk_size')
+             | map('states') | map('float', 0) | sum | round(1) }}
+      - name: Babel dyski razem użyte
+        unique_id: babel_dyski_razem_uzyte
+        unit_of_measurement: GiB
+        device_class: data_size
+        state_class: measurement
+        icon: mdi:harddisk
+        state: >-
+          {{ ['root', 'home', 'frigate', 'media', 'backup_hdd', 'backup_usb']
+             | map('regex_replace', '^(.*)$', 'sensor.babel_\\1_disk_used')
+             | map('states') | map('float', 0) | sum | round(1) }}
+      - name: Babel dyski razem wolne
+        unique_id: babel_dyski_razem_wolne
+        unit_of_measurement: GiB
+        device_class: data_size
+        state_class: measurement
+        icon: mdi:harddisk
+        state: >-
+          {{ ['root', 'home', 'frigate', 'media', 'backup_hdd', 'backup_usb']
+             | map('regex_replace', '^(.*)$', 'sensor.babel_\\1_disk_free')
+             | map('states') | map('float', 0) | sum | round(1) }}
+      - name: Babel dyski razem zajęte
+        unique_id: babel_dyski_razem_zajete
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:harddisk
+        state: >-
+          {% set u = states('sensor.babel_dyski_razem_uzyte') | float(0) %}
+          {% set s = states('sensor.babel_dyski_razem_rozmiar') | float(0) %}
+          {{ (u / s * 100) | round(1) if s > 0 else none }}
+{% endraw %}

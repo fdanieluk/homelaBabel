@@ -7,6 +7,8 @@ Image={{ homeassistant_image }}
 AutoUpdate=registry
 Network=host
 Volume=%h/homeassistant:/config:Z
+# Movies and shows, read-only, only to measure folder sizes (packages/dyski.yaml)
+Volume={{ media_path }}:/media/biblioteka:ro,z
 Volume=/etc/localtime:/etc/localtime:ro
 
 [Service]

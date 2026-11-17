@@ -3,6 +3,7 @@
   become: false
   vars_files:
     - ../vars/homeassistant.yml
+    - ../vars/storage.yml
 
   tasks:
     - name: Ensure HACS directory exists
@@ -34,4 +35,6 @@
         quadlet_files:
           - src: ha-mosquitto.yaml.j2
             dest: homeassistant/packages/mosquitto.yaml
+          - src: ha-dyski.yaml.j2
+            dest: homeassistant/packages/dyski.yaml
         quadlet_restart: "{{ hacs_installed.changed }}"
